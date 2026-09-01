@@ -1,0 +1,87 @@
+{
+  "model_type": "HistGradientBoostingRegressor",
+  "created_at": "2026-09-01T05:49:09.912773+00:00",
+  "feature_names": [
+    "current_mean",
+    "current_std",
+    "current_min",
+    "current_max",
+    "current_range",
+    "current_diff_abs",
+    "current_slope",
+    "current_last"
+  ],
+  "target_definition": "next sample current (window 마지막 sample 바로 다음 sample의 current 값, 시간 단위 아님)",
+  "window_size": 60,
+  "stride": 60,
+  "dataset_seed": 42,
+  "validation_metrics": {
+    "mae": 1.5060352403268098,
+    "rmse": 3.3289646499512693,
+    "r2": 0.7828448512817903,
+    "n": 216,
+    "mae_improvement_pct_vs_baseline": 21.57882173399947
+  },
+  "test_metrics": {
+    "mae": 1.2397059409182856,
+    "rmse": 2.820468813392205,
+    "r2": 0.8023528422897189,
+    "n": 216,
+    "mae_improvement_pct_vs_baseline": 22.26039306836126
+  },
+  "baseline_metrics": {
+    "validation": {
+      "mae": 1.920444545245695,
+      "rmse": 4.593137370751608,
+      "r2": 0.5865998471773014,
+      "n": 216,
+      "mae_improvement_pct_vs_baseline": 0.0
+    },
+    "test": {
+      "mae": 1.5946902613084164,
+      "rmse": 3.6558605561006696,
+      "r2": 0.6679318567208485,
+      "n": 216
+    }
+  },
+  "scenario_metrics": {
+    "ARC": {
+      "mae": 3.355923871485944,
+      "rmse": 5.51861219203729,
+      "r2": -0.47609401448269484,
+      "n": 36
+    },
+    "COMPLEX_RISK": {
+      "mae": 1.5693770793483313,
+      "rmse": 3.0049269327139623,
+      "r2": 0.8542817698116142,
+      "n": 36
+    },
+    "LEAKAGE": {
+      "mae": 0.30304104169643575,
+      "rmse": 0.3688869400421092,
+      "r2": -0.5330014404577279,
+      "n": 36
+    },
+    "NORMAL": {
+      "mae": 0.2499904164632455,
+      "rmse": 0.30979008794690277,
+      "r2": -0.09713160586772851,
+      "n": 36
+    },
+    "OVERHEATING": {
+      "mae": 0.23083470082617857,
+      "rmse": 0.29467651621015806,
+      "r2": -0.2680568619154504,
+      "n": 36
+    },
+    "OVER_CURRENT": {
+      "mae": 1.7290685356895774,
+      "rmse": 2.8154427439616487,
+      "r2": 0.9181779212117683,
+      "n": 36
+    }
+  },
+  "sklearn_version": "1.9.0",
+  "note": "Synthetic Dataset 기준 평가 결과. 실제 전기화재 탐지/예측 성능이나 안전 인증을 의미하지 않는다."
+}
