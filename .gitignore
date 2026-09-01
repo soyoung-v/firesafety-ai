@@ -6,11 +6,15 @@ __pycache__/
 .idea/
 .vscode/
 
+# Synthetic Dataset은 training/generate_dataset.py로 재생성 가능 - 대용량 산출물을 커밋하지 않는다
+dataset/generated/
+
 AGENTS.md
 CLAUDE.md
 .agent-docs/*
 docs
 .serena
+.claude/
 
 .env
 .env.production
