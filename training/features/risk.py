@@ -17,7 +17,7 @@ RISK_FEATURE_NAMES = [
     "cur_std",
     "cur_range",
     "cur_diff_abs",
-    "cur_slope",
+    "curendpoint_slope",
     "cnt_mean",
     "cnt_std",
     "cnt_range",
@@ -25,20 +25,20 @@ RISK_FEATURE_NAMES = [
     "leak_mean",
     "leak_std",
     "leak_max",
-    "leak_slope",
+    "leakendpoint_slope",
     "temp_mean",
     "temp_std",
     "temp_max",
-    "temp_slope",
+    "tempendpoint_slope",
     "tcur_mean",
     "tcur_std",
     "tcur_max",
-    "tcur_slope",
+    "tcurendpoint_slope",
 ]
 
 
 # 윈도우 끝값-시작값 기반 단순 기울기 (선형회귀 대신 endpoint 기반 - 재현성/설명력 우선, feature-spec.md 참고)
-def _slope(series: pd.Series) -> float:
+def endpoint_slope(series: pd.Series) -> float:
     n = len(series)
     if n < 2:
         return 0.0
@@ -58,7 +58,7 @@ def compute_risk_features(window_rows: pd.DataFrame) -> dict:
         "cur_std": cur.std(),
         "cur_range": cur.max() - cur.min(),
         "cur_diff_abs": cur.diff().abs().mean(),
-        "cur_slope": _slope(cur),
+        "curendpoint_slope": endpoint_slope(cur),
         "cnt_mean": cnt.mean(),
         "cnt_std": cnt.std(),
         "cnt_range": cnt.max() - cnt.min(),
@@ -66,13 +66,13 @@ def compute_risk_features(window_rows: pd.DataFrame) -> dict:
         "leak_mean": leak.mean(),
         "leak_std": leak.std(),
         "leak_max": leak.max(),
-        "leak_slope": _slope(leak),
+        "leakendpoint_slope": endpoint_slope(leak),
         "temp_mean": temp.mean(),
         "temp_std": temp.std(),
         "temp_max": temp.max(),
-        "temp_slope": _slope(temp),
+        "tempendpoint_slope": endpoint_slope(temp),
         "tcur_mean": tcur.mean(),
         "tcur_std": tcur.std(),
         "tcur_max": tcur.max(),
-        "tcur_slope": _slope(tcur),
+        "tcurendpoint_slope": endpoint_slope(tcur),
     }
