@@ -1,0 +1,304 @@
+{
+  "validation_results": {
+    "LogisticRegression": {
+      "accuracy": 1.0,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "macro_f1": 1.0,
+      "per_class": {
+        "NORMAL": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "WARNING": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "DANGER": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        }
+      },
+      "danger_recall": 1.0,
+      "confusion_matrix": {
+        "labels": [
+          "NORMAL",
+          "WARNING",
+          "DANGER"
+        ],
+        "matrix": [
+          [
+            96,
+            0,
+            0
+          ],
+          [
+            0,
+            60,
+            0
+          ],
+          [
+            0,
+            0,
+            60
+          ]
+        ]
+      }
+    },
+    "RandomForestClassifier": {
+      "accuracy": 1.0,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "macro_f1": 1.0,
+      "per_class": {
+        "NORMAL": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "WARNING": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "DANGER": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        }
+      },
+      "danger_recall": 1.0,
+      "confusion_matrix": {
+        "labels": [
+          "NORMAL",
+          "WARNING",
+          "DANGER"
+        ],
+        "matrix": [
+          [
+            96,
+            0,
+            0
+          ],
+          [
+            0,
+            60,
+            0
+          ],
+          [
+            0,
+            0,
+            60
+          ]
+        ]
+      }
+    },
+    "HistGradientBoostingClassifier": {
+      "accuracy": 1.0,
+      "macro_precision": 1.0,
+      "macro_recall": 1.0,
+      "macro_f1": 1.0,
+      "per_class": {
+        "NORMAL": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "WARNING": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "DANGER": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        }
+      },
+      "danger_recall": 1.0,
+      "confusion_matrix": {
+        "labels": [
+          "NORMAL",
+          "WARNING",
+          "DANGER"
+        ],
+        "matrix": [
+          [
+            96,
+            0,
+            0
+          ],
+          [
+            0,
+            60,
+            0
+          ],
+          [
+            0,
+            0,
+            60
+          ]
+        ]
+      }
+    }
+  },
+  "selected_model": "LogisticRegression",
+  "test_metrics": {
+    "accuracy": 0.9861111111111112,
+    "macro_precision": 0.9858108857111185,
+    "macro_recall": 0.9833333333333334,
+    "macro_f1": 0.9842613948619215,
+    "per_class": {
+      "NORMAL": {
+        "precision": 0.9896907216494846,
+        "recall": 1.0,
+        "f1": 0.9948186528497409
+      },
+      "WARNING": {
+        "precision": 1.0,
+        "recall": 0.95,
+        "f1": 0.9743589743589743
+      },
+      "DANGER": {
+        "precision": 0.967741935483871,
+        "recall": 1.0,
+        "f1": 0.9836065573770492
+      }
+    },
+    "danger_recall": 1.0,
+    "confusion_matrix": {
+      "labels": [
+        "NORMAL",
+        "WARNING",
+        "DANGER"
+      ],
+      "matrix": [
+        [
+          96,
+          0,
+          0
+        ],
+        [
+          1,
+          57,
+          2
+        ],
+        [
+          0,
+          0,
+          60
+        ]
+      ]
+    }
+  },
+  "feature_importance": [
+    {
+      "feature": "cur_range",
+      "importance_mean": 0.10770479224011002,
+      "importance_std": 0.014358673668494661
+    },
+    {
+      "feature": "temp_std",
+      "importance_mean": 0.10300120233591961,
+      "importance_std": 0.00956435749167617
+    },
+    {
+      "feature": "temp_max",
+      "importance_mean": 0.09767890168031419,
+      "importance_std": 0.010920799727503278
+    },
+    {
+      "feature": "leak_mean",
+      "importance_mean": 0.09149271245897221,
+      "importance_std": 0.007261373226699523
+    },
+    {
+      "feature": "temp_slope",
+      "importance_mean": 0.09108287111577142,
+      "importance_std": 0.00760070909821454
+    },
+    {
+      "feature": "leak_std",
+      "importance_mean": 0.09094320760280702,
+      "importance_std": 0.011627060354426696
+    },
+    {
+      "feature": "temp_mean",
+      "importance_mean": 0.08599398278462152,
+      "importance_std": 0.01267236540753738
+    },
+    {
+      "feature": "cur_diff_abs",
+      "importance_mean": 0.08423585126378248,
+      "importance_std": 0.016808797266689365
+    },
+    {
+      "feature": "cur_mean",
+      "importance_mean": 0.08179849241479653,
+      "importance_std": 0.0052596100794007755
+    },
+    {
+      "feature": "leak_max",
+      "importance_mean": 0.07950732382583284,
+      "importance_std": 0.015085844588405
+    },
+    {
+      "feature": "cur_std",
+      "importance_mean": 0.0753453441266482,
+      "importance_std": 0.010300267478285713
+    },
+    {
+      "feature": "tcur_std",
+      "importance_mean": 0.05148811489417308,
+      "importance_std": 0.00989107415721792
+    },
+    {
+      "feature": "tcur_max",
+      "importance_mean": 0.045805048028305075,
+      "importance_std": 0.008789739867195915
+    },
+    {
+      "feature": "cnt_range",
+      "importance_mean": 0.03125041740086517,
+      "importance_std": 0.011803409516230228
+    },
+    {
+      "feature": "cnt_diff_abs",
+      "importance_mean": 0.03125041740086517,
+      "importance_std": 0.011803409516230228
+    },
+    {
+      "feature": "cnt_mean",
+      "importance_mean": 0.022151180999317233,
+      "importance_std": 0.009981187659977171
+    },
+    {
+      "feature": "cnt_std",
+      "importance_mean": 0.017323627260342155,
+      "importance_std": 0.008247257934236349
+    },
+    {
+      "feature": "leak_slope",
+      "importance_mean": 0.015222142969242947,
+      "importance_std": 0.006645108291814986
+    },
+    {
+      "feature": "tcur_mean",
+      "importance_mean": 0.00794844912867867,
+      "importance_std": 0.005998490298970278
+    },
+    {
+      "feature": "cur_slope",
+      "importance_mean": 0.003161300956388724,
+      "importance_std": 0.004053803227950803
+    },
+    {
+      "feature": "tcur_slope",
+      "importance_mean": 0.0009028257799651662,
+      "importance_std": 0.0018056625816759342
+    }
+  ]
+}
