@@ -1,0 +1,27 @@
+{
+  "arcClassifier": {
+    "selected_model": "LogisticRegression",
+    "f1": 1.0,
+    "arc_recall": 1.0,
+    "normal_false_positive_rate": 0.0
+  },
+  "riskClassifier": {
+    "selected_model": "LogisticRegression",
+    "macro_f1": 0.9842613948619215,
+    "danger_recall": 1.0
+  },
+  "anomalyDetector": {
+    "selected_model": "IsolationForest",
+    "f1": 0.9917355371900827,
+    "danger_recall": 1.0,
+    "normal_false_positive_rate": 0.020833333333333332
+  },
+  "currentRegressor": {
+    "selected_model": "HistGradientBoostingRegressor",
+    "mae": 1.2397059409182856,
+    "rmse": 2.820468813392205,
+    "r2": 0.8023528422897189,
+    "mae_improvement_pct_vs_baseline": 22.26039306836126
+  },
+  "note": "Synthetic Dataset 기준 평가 결과를 각 Phase report에서 그대로 인용했다. 여기서 새로 계산한 값은 없다."
+}

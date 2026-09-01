@@ -1,0 +1,37 @@
+{
+  "arcClassifier": {
+    "artifact": "arc_classifier.joblib",
+    "metadata": "arc_classifier.metadata.json",
+    "outputs": [
+      "pred",
+      "proba"
+    ],
+    "wrapper": "training.models.arc_inference.ArcClassifier"
+  },
+  "riskClassifier": {
+    "artifact": "risk_classifier.joblib",
+    "metadata": "risk_classifier.metadata.json",
+    "outputs": [
+      "riskLevel",
+      "riskScore"
+    ],
+    "wrapper": "training.models.risk_inference.RiskClassifier"
+  },
+  "anomalyDetector": {
+    "artifact": "anomaly_detector.joblib",
+    "metadata": "anomaly_detector.metadata.json",
+    "outputs": [
+      "anomaly",
+      "anomalyScore"
+    ],
+    "wrapper": "training.models.anomaly_inference.AnomalyDetector"
+  },
+  "currentRegressor": {
+    "artifact": "current_regressor.joblib",
+    "metadata": "current_regressor.metadata.json",
+    "outputs": [
+      "predictedCurrent"
+    ],
+    "wrapper": "training.models.current_inference.CurrentRegressor"
+  }
+}

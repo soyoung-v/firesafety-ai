@@ -1,0 +1,65 @@
+{
+  "models": {
+    "arcClassifier": {
+      "artifact_exists": true,
+      "metadata_exists": true,
+      "missing_metadata_keys": [],
+      "window_size": 60,
+      "stride": 60,
+      "dataset_seed": 42,
+      "sklearn_version": "1.9.0",
+      "has_synthetic_note": true,
+      "feature_count": 7,
+      "load_ok": true,
+      "wrapper_ok": true
+    },
+    "riskClassifier": {
+      "artifact_exists": true,
+      "metadata_exists": true,
+      "missing_metadata_keys": [],
+      "window_size": 60,
+      "stride": 60,
+      "dataset_seed": 42,
+      "sklearn_version": "1.9.0",
+      "has_synthetic_note": true,
+      "feature_count": 21,
+      "load_ok": true,
+      "wrapper_ok": true
+    },
+    "anomalyDetector": {
+      "artifact_exists": true,
+      "metadata_exists": true,
+      "missing_metadata_keys": [],
+      "window_size": 60,
+      "stride": 60,
+      "dataset_seed": 42,
+      "sklearn_version": "1.9.0",
+      "has_synthetic_note": true,
+      "feature_count": 21,
+      "load_ok": true,
+      "wrapper_ok": true
+    },
+    "currentRegressor": {
+      "artifact_exists": true,
+      "metadata_exists": true,
+      "missing_metadata_keys": [],
+      "window_size": 60,
+      "stride": 60,
+      "dataset_seed": 42,
+      "sklearn_version": "1.9.0",
+      "has_synthetic_note": true,
+      "feature_count": 8,
+      "load_ok": true,
+      "wrapper_ok": true
+    }
+  },
+  "window_size_consistent": true,
+  "stride_consistent": true,
+  "window_sizes_found": [
+    60
+  ],
+  "strides_found": [
+    60
+  ],
+  "all_models_ready": true
+}
