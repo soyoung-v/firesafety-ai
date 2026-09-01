@@ -6,7 +6,7 @@ import pytest
 from training.scenario.registry import SCENARIOS, get_scenario
 
 SMALL_SAMPLES = 60
-RISKY_SAMPLES = 300  # NORMAL/WARNING/DANGER 세 구간이 모두 확보되도록 CSTech window(60) 이상으로 넉넉히
+RISKY_SAMPLES = 300  # NORMAL/WARNING/DANGER 세 구간이 모두 확보되도록 기본 window(60) 이상으로 넉넉히
 
 
 @pytest.mark.parametrize("scenario_name", list(SCENARIOS.keys()))

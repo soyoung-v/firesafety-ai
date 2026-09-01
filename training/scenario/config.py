@@ -66,7 +66,7 @@ ARC_WARNING = {
     "arc_count": FieldTarget(mean=0.3, std=0.5, cumulative=True),  # 간헐적 증가 [SIM]
 }
 ARC_DANGER = {
-    "current": FieldTarget(mean=5.0, std=15.0),  # 불규칙한 급변 [SIM, CSTech 패턴 근거]
+    "current": FieldTarget(mean=5.0, std=15.0),  # 불규칙한 급변 [SIM, 레거시 아크 판정 패턴 근거]
     "arc_count": FieldTarget(mean=2.0, std=1.0, cumulative=True),  # 급증 [SIM]
 }
 
