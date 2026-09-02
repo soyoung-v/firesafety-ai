@@ -8,16 +8,24 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from app.api import health, model_info, predict
+from app.api import explain, health, model_info, predict
+from app.config import load_llm_settings
+from app.service.explanation_provider_factory import build_provider
 from app.service.model_registry import ModelRegistry
 
 
 # startup에서 모델 전체 로드, shutdown에서는 별도 정리가 필요 없음(파일 핸들을 들고 있지 않음)
+# LLM 설명 provider는 ML 모델과 달리 로드 실패/미설정이어도 서비스 시작을 막지 않는다(/explain만 503).
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     registry = ModelRegistry()
     registry.load_all()
     app.state.model_registry = registry
+
+    llm_settings = load_llm_settings()
+    app.state.llm_settings = llm_settings
+    app.state.explanation_provider = build_provider(llm_settings)
+
     yield
 
 
@@ -36,6 +44,7 @@ app = FastAPI(
 app.include_router(health.router)
 app.include_router(model_info.router)
 app.include_router(predict.router)
+app.include_router(explain.router)
 
 
 # Pydantic 검증 오류의 기본 응답은 거절된 원본 값을 그대로 echo하는데, NaN/Infinity처럼 표준
