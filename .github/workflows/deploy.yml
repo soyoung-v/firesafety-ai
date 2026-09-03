@@ -1,0 +1,77 @@
+name: ai-service deploy
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-ai-production
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/arcguard-ai
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - run: pip install -r requirements.txt
+
+      # 실제 OpenAI를 호출하지 않는다 - LLM_EXPLANATION_ENABLED를 명시적으로 비워/false로 두고
+      # OPENAI_API_KEY는 CI에 절대 넣지 않는다. 전부 mock/stub 기반 테스트만 돈다.
+      - name: pytest
+        env:
+          LLM_EXPLANATION_ENABLED: "false"
+        run: pytest -q
+
+      - id: meta
+        run: echo "tag=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tag }}
+            ${{ env.IMAGE_NAME }}:latest
+
+  deploy:
+    needs: test-and-build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to EC2 (pull + restart ai-service only)
+        # EC2 SSH 개인키를 다루는 third-party action이라 major tag가 아니라 커밋 SHA로 고정한다
+        # (v1.2.5, https://github.com/appleboy/ssh-action/releases/tag/v1.2.5)
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd ~/arcguard
+            export IMAGE_TAG=${{ needs.test-and-build.outputs.image_tag }}
+            docker compose --env-file .env.production pull ai-service
+            docker compose --env-file .env.production up -d --no-deps ai-service
+            ./deploy/scripts/health-check.sh ai-service

@@ -6,8 +6,11 @@ from app.config import DEFAULT_OPENAI_MODEL, DEFAULT_TIMEOUT_SECONDS, load_llm_s
 
 
 def test_default_settings_are_disabled(monkeypatch):
-    monkeypatch.delenv("LLM_EXPLANATION_ENABLED", raising=False)
-    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    # 개발자 로컬 .env에 실제 값(LLM_EXPLANATION_ENABLED=true, OPENAI_MODEL 등)이 들어있어도
+    # 이 테스트는 "값이 전혀 없을 때의 기본값"만 검증해야 하므로 관련 env 전부를 명시적으로 지운다
+    # (ambient 환경에 의존하지 않는 격리 - Phase 15 test-isolation 수정).
+    for key in ("LLM_EXPLANATION_ENABLED", "LLM_PROVIDER", "OPENAI_API_KEY", "OPENAI_MODEL", "LLM_TIMEOUT_SECONDS"):
+        monkeypatch.delenv(key, raising=False)
 
     settings = load_llm_settings()
 

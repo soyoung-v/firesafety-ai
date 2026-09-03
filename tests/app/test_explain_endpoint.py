@@ -56,7 +56,14 @@ def _enable(client: TestClient, provider: ExplanationProvider | None) -> None:
 
 
 def test_explain_disabled_by_default_returns_503(client):
-    # lifespan이 실제 환경변수(.env 없음)로 로드하므로 기본값은 비활성화 상태
+    # lifespan은 실제 환경변수로 로드되므로, 개발자 로컬 .env에 실제 값이 있어도 이 테스트가
+    # "비활성화 상태"를 검증하도록 app.state를 명시적으로 비활성화로 고정한다(ambient 환경에
+    # 의존하지 않는 격리 - Phase 15 test-isolation 수정).
+    client.app.state.llm_settings = LlmSettings(
+        enabled=False, provider="openai", openai_api_key=None, openai_model="gpt-4o-mini", timeout_seconds=5.0
+    )
+    client.app.state.explanation_provider = None
+
     response = client.post("/explain", json=_payload())
     assert response.status_code == 503
 
