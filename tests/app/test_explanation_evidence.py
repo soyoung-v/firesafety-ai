@@ -69,6 +69,40 @@ def test_build_evidence_includes_trend_when_provided():
     assert evidence["trendEvidence"] == {"currentSlope": 0.12, "temperatureSlope": 0.81}
 
 
+def test_build_evidence_rounds_long_decimals_for_display():
+    # 원본 float 정밀도(예: 27.218000411987305)를 그대로 문장에 옮기지 않도록 소수 1자리로 정리한다 -
+    # 값이 달라지는 반올림이 아니라 표시용 자리수 정리다.
+    request = ExplainRequest(
+        circuit=1,
+        prediction=_prediction(predictedCurrent=27.218000411987305),
+        sensorEvidence=SensorEvidence(current=26.399999618530273, temperature=90.50000762939453),
+    )
+
+    evidence = build_evidence(request)
+
+    assert evidence["prediction"]["predictedCurrent"] == 27.2
+    assert evidence["sensorEvidence"]["current"] == 26.4
+    assert evidence["sensorEvidence"]["temperature"] == 90.5
+
+
+def test_build_evidence_adds_confidence_percent_oriented_to_pred_direction():
+    # pred=1(ARC)이면 proba 그대로가 그 판정의 신뢰도
+    arc_evidence = build_evidence(ExplainRequest(
+        circuit=1, prediction=_prediction(pred=1, proba=0.98),
+        sensorEvidence=SensorEvidence(current=5.0),
+    ))
+    assert arc_evidence["prediction"]["confidencePercent"] == 98
+
+    # pred=0(NORMAL)이면 (1-proba)가 그 판정의 신뢰도 - proba=0.08을 그대로 "신뢰도 8%"로 읽으면 거꾸로 된다
+    normal_evidence = build_evidence(ExplainRequest(
+        circuit=1, prediction=_prediction(pred=0, proba=0.08),
+        sensorEvidence=SensorEvidence(current=5.0),
+    ))
+    assert normal_evidence["prediction"]["confidencePercent"] == 92
+    # proba 원본값 자체는 바뀌지 않는다 - "재계산 금지" 원칙 유지
+    assert normal_evidence["prediction"]["proba"] == 0.08
+
+
 def test_evidence_never_contains_synthetic_ground_truth_keys():
     # 스키마 자체가 이런 필드를 받지 않으므로(extra=forbid) 여기서는 evidence dict에도 절대 등장하지 않음을 재확인한다
     request = ExplainRequest(

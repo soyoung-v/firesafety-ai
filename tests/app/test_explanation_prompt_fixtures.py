@@ -73,3 +73,27 @@ def test_system_prompt_forbids_forced_arc_labeling_and_fire_probability_language
     assert "화재 확률" in SYSTEM_PROMPT
     assert "가스/불꽃" in SYSTEM_PROMPT
     assert "시간 단위로 표현하지 않는다" in SYSTEM_PROMPT
+
+
+def test_system_prompt_instructs_natural_language_over_raw_field_names():
+    # 필드명을 그대로 나열하지 말라는 지시와, 무엇으로 바꿔 써야 하는지 매핑이 둘 다 있어야 한다
+    assert "필드명을 문장에 그대로 나열하지" in SYSTEM_PROMPT
+    assert "종합 위험도" in SYSTEM_PROMPT
+    assert "아크 판정" in SYSTEM_PROMPT
+    assert "이상 패턴" in SYSTEM_PROMPT
+    assert "예상 전류" in SYSTEM_PROMPT
+
+
+def test_system_prompt_instructs_selecting_only_key_sensor_evidence():
+    assert "2~3개만" in SYSTEM_PROMPT
+
+
+def test_system_prompt_instructs_output_structure_order():
+    assert "현재 판정" in SYSTEM_PROMPT
+    assert "주의해야 할 근거" in SYSTEM_PROMPT
+    assert "확인 권장사항" in SYSTEM_PROMPT
+
+
+def test_system_prompt_instructs_percent_confidence_and_one_decimal_numbers():
+    assert "%로 표현" in SYSTEM_PROMPT
+    assert "소수점 1자리까지만" in SYSTEM_PROMPT
