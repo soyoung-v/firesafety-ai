@@ -1,0 +1,38 @@
+# Continuous Demo Simulator 1회 실행 (one-shot). arcguard-demo-simulator.timer가 약 60초 간격으로
+# 이 서비스를 트리거한다. 상주 프로세스/컨테이너가 아니다 - 매 실행이 기존 docker-compose.yml의
+# ai-service 이미지로 임시 컨테이너 하나를 만들어(--rm) sensor frame 1개만 보내고 즉시 삭제한다.
+#
+# 이 방식을 쓰는 이유(검토했던 대안과의 차이):
+#   - EC2 host에 별도 Python venv/소스 clone을 두지 않는다 - simulator 코드는 firesafety-ai
+#     Dockerfile에 포함되어 GitHub Actions가 빌드하는 ai-service 이미지 안에 이미 들어있다
+#     (source of truth가 배포 이미지 하나로 유지된다).
+#   - 실행 중인 arcguard-ai-service 컨테이너에 exec하지 않는다 - `docker compose run --rm`으로
+#     완전히 별도의 임시 컨테이너를 매번 새로 만들고 끝나면 지워서, FastAPI 서빙 프로세스의
+#     lifecycle과 전혀 결합되지 않는다(ai-service 재배포 중이어도 이 서비스가 그걸 방해하지 않고,
+#     반대로 이 실행이 실패해도 서빙 중인 FastAPI에는 영향이 없다).
+#
+# EC2에 설치:
+#   sudo cp deploy/systemd/arcguard-demo-simulator.* /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now arcguard-demo-simulator.timer
+#
+# 사전 준비(1회):
+#   mkdir -p /home/ec2-user/arcguard-demo-simulator
+#   sudo chown 100:101 /home/ec2-user/arcguard-demo-simulator   # ai-service 이미지의 firesafety 유저(uid=100,gid=101)
+[Unit]
+Description=ArcGuard Continuous Demo Simulator (one-shot temporary container)
+
+[Service]
+Type=oneshot
+User=ec2-user
+WorkingDirectory=/home/ec2-user/arcguard
+TimeoutStartSec=30
+ExecStart=/usr/bin/docker compose --env-file .env.production run --rm --no-deps \
+    -v /home/ec2-user/arcguard-demo-simulator:/state \
+    ai-service \
+    python -m simulator.continuous_run \
+    --base-url http://backend:8080 \
+    --m-no 90001 \
+    --state-path /state/state.json \
+    --event-probability 0.003 \
+    --timeout-s 5

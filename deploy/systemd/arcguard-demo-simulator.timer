@@ -1,0 +1,31 @@
+# 한국 업무시간(평일 09:00~17:59, 1분 간격)에만 arcguard-demo-simulator.service를 실행한다.
+# OnUnitActiveSec(상대 간격)가 아니라 OnCalendar(절대 시각)를 쓰는 이유 - 상대 간격으로는 "18:00에
+# 멈추고 다음날 09:00에 재개"를 표현할 수 없다. OnCalendar 표현식 끝의 "Asia/Seoul"은 EC2 host의
+# 시스템 timezone 설정(UTC일 수도, KST일 수도 있음)과 무관하게 항상 한국 시간 기준으로 계산되게
+# 한다 - host TZ에 의존하지 않는다.
+#
+# 표현식: Mon..Fri *-*-* 09..17:*:00 Asia/Seoul
+#   - 요일: 월~금만
+#   - 시: 09~17(18은 범위에 없으므로 17:59:00이 마지막 실행, 18:00:00 실행 없음)
+#   - 분: 매 분(*)
+#   - 초: 00 (분당 정확히 1회)
+#
+# 검증(로컬 Docker, systemd 249 + tzdata, TZ=Asia/Seoul 기준 systemd-analyze calendar):
+#   - 금요일 17:58 시점 기준: 다음 실행 Fri 17:59:00 KST -> 그 다음 Mon 09:00:00 KST (토/일 스킵 확인)
+#   - 토요일 10:00 시점 기준: 다음 실행 Mon 09:00:00 KST
+#
+# Persistent=false 유지 - EC2가 업무시간 중 꺼져 있다가 켜져도, 놓친 실행을 몰아서 실행하지 않는다
+# (계속 유지되던 정책 그대로). Continuous Simulator의 event phase/cooldownRemaining은 state.json에
+# 남아있는 값 그대로 다음 실행(다음 평일 09:00 또는 재부팅 후 첫 tick)에 이어서 진행된다 - 이 timer는
+# "언제 실행할지"만 결정하고, 실행 사이 경과 시간으로 state를 감소시키는 로직은 어디에도 없다(감소는
+# 오직 "성공적으로 보낸 frame 수"에 비례하므로, 업무시간 종료 후 실행이 없으면 phase/cooldown도
+# 그 시점 그대로 멈춰 있다가 다음 실행에서 재개된다).
+[Unit]
+Description=Run ArcGuard Continuous Demo Simulator every minute during KST business hours (Mon-Fri 09:00-17:59)
+
+[Timer]
+OnCalendar=Mon..Fri *-*-* 09..17:*:00 Asia/Seoul
+Persistent=false
+
+[Install]
+WantedBy=timers.target
