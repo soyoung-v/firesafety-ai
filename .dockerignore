@@ -9,9 +9,7 @@ __pycache__/
 .env
 .env.local
 dataset/
-simulator/
 tests/
-training/scenario/
 training/dataset/
 .serena/
 .claude/
