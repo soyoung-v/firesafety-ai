@@ -29,8 +29,11 @@ USER firesafety
 
 EXPOSE 8000
 
-# uvicorn 자체 헬스체크 엔드포인트는 없으므로 Python 표준 라이브러리로 /health를 호출한다
+# uvicorn 자체 헬스체크 엔드포인트는 없으므로 Python 표준 라이브러리로 /health를 호출한다.
+# localhost가 아니라 127.0.0.1을 명시한다 - /etc/hosts는 localhost를 127.0.0.1과 ::1 둘 다로
+# 매핑하는데, 이 이미지는 IPv6가 비활성화된 네트워크에서 돌 수 있어(disable_ipv6=1) urllib이
+# IPv6로 폴백을 시도하면 "Errno 99 Cannot assign requested address"로 실패 원인이 가려진다.
 HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=5 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')" || exit 1
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
