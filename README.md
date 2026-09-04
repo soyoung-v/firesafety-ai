@@ -14,14 +14,10 @@ ArcGuard 시스템에서 분전반 센서 데이터를 분석해 전기 이상 �
 
 ## Architecture
 
-```mermaid
-flowchart LR
-    SB["Spring Boot"] -->|"POST /predict"| AI["FastAPI (4 models)"]
-    SB -->|"POST /explain (on-demand)"| AI
-    AI -->|"LLM 설명만"| OpenAI
-```
+![Architecture](images/architecture-ai.png)
 
-`/predict`(ML 판정)와 `/explain`(LLM 설명)은 서로 호출하지 않고 상태도 공유하지 않습니다 — LLM 장애가 ML 판정에 영향을 주지 않습니다.
+`/predict`(ML 판정)와 `/explain`(LLM 설명)은 서로 호출하지 않고 상태도 공유하지 않습니다 
+— LLM 장애가 ML 판정에 영향을 주지 않습니다.
 
 ---
 
