@@ -75,3 +75,9 @@ jobs:
             docker compose --env-file .env.production pull ai-service
             docker compose --env-file .env.production up -d --no-deps ai-service
             ./deploy/scripts/health-check.sh ai-service
+            # .env.production에는 IMAGE_TAG가 없어 이 SHA pull은 :latest 로컬 캐시를 갱신하지 않는다 -
+            # docker compose run(예: Continuous Demo Simulator)처럼 태그를 지정하지 않는 호출은
+            # image: ...:${IMAGE_TAG:-latest} 기본값을 그대로 타므로, :latest 태그도 배포 시점에
+            # 한 번 명시적으로 pull해 로컬 캐시를 최신으로 맞춰둔다(실행 중인 ai-service 컨테이너
+            # 자체는 위에서 이미 SHA 태그로 갱신됐으므로 이 pull이 서빙에 영향을 주지 않는다).
+            docker pull ${{ env.IMAGE_NAME }}:latest

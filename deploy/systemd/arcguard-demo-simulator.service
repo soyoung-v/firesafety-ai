@@ -19,6 +19,15 @@
 # 사전 준비(1회):
 #   mkdir -p /home/ec2-user/arcguard-demo-simulator
 #   sudo chown 100:101 /home/ec2-user/arcguard-demo-simulator   # ai-service 이미지의 firesafety 유저(uid=100,gid=101)
+#
+# 이 서비스는 :latest 이미지를 매 실행(1분 간격) 직접 pull하지 않는다 - docker-compose.yml의 ai-service는
+# image: ...:${IMAGE_TAG:-latest}인데 .env.production에 IMAGE_TAG가 없어, 태그를 지정하지 않는 이
+# 호출은 로컬 :latest 캐시를 그대로 쓴다. :latest 캐시를 최신으로 유지하는 책임은 여기(runtime)가 아니라
+# firesafety-ai .github/workflows/deploy.yml의 배포 단계에 있다 - 그 워크플로우가 매 배포마다 SHA 태그로
+# ai-service를 pull/up한 다음, :latest 태그도 한 번 명시적으로 pull해 로컬 캐시를 갱신해 둔다. 이 서비스가
+# 매분 자체적으로 pull하면 업무시간 기준 하루 약 540회의 불필요한 registry 요청이 생기고, GHCR 일시 장애
+# 시 로컬에 정상 이미지가 있어도 pull 실패로 실행 자체가 막히는 문제가 있어(2026-09 실측으로 확인된 문제의
+# 재발 방지책을 배포 단계로 옮김) 뺐다.
 [Unit]
 Description=ArcGuard Continuous Demo Simulator (one-shot temporary container)
 
@@ -35,4 +44,5 @@ ExecStart=/usr/bin/docker compose --env-file .env.production run --rm --no-deps 
     --m-no 90001 \
     --state-path /state/state.json \
     --event-probability 0.003 \
+    --cooldown-frames 45 \
     --timeout-s 5
