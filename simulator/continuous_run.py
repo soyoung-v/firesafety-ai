@@ -44,6 +44,12 @@ MAX_CIRCUIT = 10
 # 추가하면 되고, 그 외 아무 데도 손댈 필요가 없다.
 DEFAULT_DEMO_SCENARIO_POOL: tuple[str, ...] = ("ARC", "LEAKAGE", "OVERHEATING")
 
+# 90001(--m-no)은 위 SimulatorState 상태기계로 NORMAL/위험 이벤트를 관리하고, 나머지 데모 분전반들은
+# 여기 heartbeat 대상으로만 등록한다 - state.json을 전혀 읽거나 쓰지 않는 무상태 NORMAL 1프레임 전송뿐이라
+# WARNING/DANGER 이벤트가 발생할 수 없다(decide_next_frame을 거치지 않음). CommunicationMonitor의
+# 1분 통신두절 판정을 피하려는 목적이므로, 이 목록에 포함된 분전반은 절대 위험 시나리오 대상이 되면 안 된다.
+HEARTBEAT_MNOS: tuple[str, ...] = ("90011", "90012", "90013", "90014", "90015", "90016", "90017")
+
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="ArcGuard Continuous Demo Simulator - one-shot 실행, sensor frame 1개만 전송")
@@ -109,8 +115,23 @@ def decide_next_frame(
     return params, state.advanced(cooldown_frames)
 
 
-# 1회 실행의 전체 흐름 - state 로드 -> 다음 프레임 결정 -> 전송 -> 성공 시에만 state 저장.
-# 반환값은 성공 여부(0/1은 main()의 exit code로 이어짐, 실패해도 예외를 던지지 않는다).
+# heartbeat 대상 분전반들에 NORMAL 1프레임씩 전송 - state.json을 읽거나 쓰지 않는 완전 무상태 경로.
+# 개별 실패는 로그만 남기고 다음 mNo로 넘어간다(한 분전반의 실패가 나머지 heartbeat나 90001 처리를 막지 않는다).
+def send_heartbeats(base_url: str, mnos: tuple[str, ...], timeout_s: float, rng: np.random.Generator) -> None:
+    for mno in mnos:
+        seed = int(rng.integers(0, 2**31 - 1))
+        series = build_panel_frame_series("NORMAL", mno, samples=1, seed=seed, target_circuit=MIN_CIRCUIT)
+        params = build_frame_params(series, 0)
+        try:
+            result = client.send_frame(base_url, params, timeout_s=timeout_s)
+            print(f"[heartbeat] {mno} -> {result.get('message', 'OK')}")
+        except client.FrameSendError as e:
+            print(f"[heartbeat] {mno} 전송 실패 - {e}", file=sys.stderr)
+
+
+# 1회 실행의 전체 흐름 - state 로드 -> 다음 프레임 결정 -> 전송 -> 성공 시에만 state 저장 -> heartbeat 전송.
+# 반환값은 90001 처리 성공 여부(0/1은 main()의 exit code로 이어짐, 실패해도 예외를 던지지 않는다) - heartbeat
+# 결과는 이 반환값에 영향을 주지 않는다(요구사항: 실패해도 로그만, 90001 판정을 막지 않는다).
 def run_once(
     base_url: str,
     m_no: str,
@@ -120,6 +141,7 @@ def run_once(
     danger_range: tuple[int, int] = DEFAULT_DANGER_FRAMES_RANGE,
     cooldown_frames: int = DEFAULT_COOLDOWN_FRAMES,
     scenario_pool: tuple[str, ...] = DEFAULT_DEMO_SCENARIO_POOL,
+    heartbeat_mnos: tuple[str, ...] = HEARTBEAT_MNOS,
     timeout_s: float = 5.0,
     rng: np.random.Generator | None = None,
 ) -> bool:
@@ -137,17 +159,20 @@ def run_once(
         label = f"IDLE/NORMAL (cooldown {state.cooldownRemaining}->{next_state.cooldownRemaining})"
     else:
         label = "IDLE/NORMAL"
+
+    ok = True
     try:
         result = client.send_frame(base_url, params, timeout_s=timeout_s)
         print(f"[continuous] {label} -> {result.get('message', 'OK')}")
+        write_state(state_path, next_state)
     except client.FrameSendError as e:
         # 실패 시맨틱: state는 절대 저장하지 않는다(advance 금지, 새 이벤트 선택도 없었던 일이 된다) -
         # 다음 timer 실행이 이번과 정확히 같은 지점부터 다시 시도한다.
         print(f"[continuous] {label} 전송 실패 - {e}", file=sys.stderr)
-        return False
+        ok = False
 
-    write_state(state_path, next_state)
-    return True
+    send_heartbeats(base_url, heartbeat_mnos, timeout_s, rng)
+    return ok
 
 
 def main(argv: list[str] | None = None) -> int:

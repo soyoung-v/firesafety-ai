@@ -9,7 +9,14 @@ import numpy as np
 import pytest
 
 from simulator import client
-from simulator.continuous_run import DEFAULT_DEMO_SCENARIO_POOL, decide_next_frame, main, run_once
+from simulator.continuous_run import (
+    DEFAULT_DEMO_SCENARIO_POOL,
+    HEARTBEAT_MNOS,
+    decide_next_frame,
+    main,
+    run_once,
+    send_heartbeats,
+)
 from simulator.continuous_scenario import EVENT_SCENARIOS
 from simulator.continuous_state import PHASE_DANGER, PHASE_WARNING, STATE_IN_EVENT, SimulatorState, load_state, write_state
 
@@ -296,6 +303,113 @@ def test_cli_scenario_pool_explicit_override_allows_over_current(tmp_path, _patc
     ])
     assert rc == 0
     assert load_state(state_path).scenario == "OVER_CURRENT"
+
+
+# --- heartbeat: 90011~90017(HEARTBEAT_MNOS) - state.json 무관, 항상 순수 NORMAL 1프레임 ---
+
+def test_heartbeat_mnos_matches_expected_seven_panels():
+    assert HEARTBEAT_MNOS == ("90011", "90012", "90013", "90014", "90015", "90016", "90017")
+
+
+def test_send_heartbeats_sends_one_frame_per_mno(_patch_send_frame):
+    stub = _patch_send_frame
+    send_heartbeats("http://example.invalid", HEARTBEAT_MNOS, timeout_s=5.0, rng=np.random.default_rng(1))
+    assert [p["m_no"] for p in stub.calls] == list(HEARTBEAT_MNOS)
+
+
+def test_send_heartbeats_frames_are_pure_normal_no_risk_bits(_patch_send_frame):
+    stub = _patch_send_frame
+    send_heartbeats("http://example.invalid", HEARTBEAT_MNOS, timeout_s=5.0, rng=np.random.default_rng(2))
+    for params in stub.calls:
+        assert params["aerror"] == "00000000"  # ARC/ALARM bit 전부 꺼짐 - WARNING/DANGER 절대 발생 안 함
+
+
+def test_send_heartbeats_one_failure_does_not_block_the_rest():
+    class _PartialFailClient:
+        def __init__(self):
+            self.calls: list[dict] = []
+
+        def __call__(self, base_url, params, timeout_s=5.0):
+            self.calls.append(params)
+            if params["m_no"] == "90013":
+                raise client.FrameSendError(500, "stub failure")
+            return {"message": "OK"}
+
+    stub = _PartialFailClient()
+    import simulator.client as client_module
+
+    original = client_module.send_frame
+    client_module.send_frame = stub
+    try:
+        send_heartbeats("http://example.invalid", HEARTBEAT_MNOS, timeout_s=5.0, rng=np.random.default_rng(3))
+    finally:
+        client_module.send_frame = original
+
+    # 90013 실패와 무관하게 나머지 6개는 전부 시도됐어야 한다
+    assert [p["m_no"] for p in stub.calls] == list(HEARTBEAT_MNOS)
+
+
+def test_run_once_sends_main_frame_and_all_heartbeats(tmp_path, _patch_send_frame):
+    stub = _patch_send_frame
+    state_path = str(tmp_path / "state.json")
+    ok = run_once("http://example.invalid", "90001", state_path, event_probability=0.0, rng=np.random.default_rng(1))
+    assert ok is True
+    called_mnos = [p["m_no"] for p in stub.calls]
+    assert called_mnos == ["90001", *HEARTBEAT_MNOS]
+
+
+def test_run_once_heartbeat_failure_does_not_affect_main_result_or_state(tmp_path):
+    class _HeartbeatFailClient:
+        def __init__(self):
+            self.calls: list[dict] = []
+
+        def __call__(self, base_url, params, timeout_s=5.0):
+            self.calls.append(params)
+            if params["m_no"] in HEARTBEAT_MNOS:
+                raise client.FrameSendError(500, "heartbeat down")
+            return {"message": "OK"}
+
+    import simulator.client as client_module
+
+    stub = _HeartbeatFailClient()
+    original = client_module.send_frame
+    client_module.send_frame = stub
+    try:
+        state_path = str(tmp_path / "state.json")
+        ok = run_once("http://example.invalid", "90001", state_path, event_probability=0.0, rng=np.random.default_rng(1))
+    finally:
+        client_module.send_frame = original
+
+    assert ok is True  # heartbeat 전부 실패해도 90001 처리 성공 여부는 그대로
+    saved = load_state(state_path)
+    assert saved.is_idle()  # 90001 state.json은 heartbeat와 무관하게 정상 advance됨
+
+
+def test_run_once_main_failure_still_sends_all_heartbeats(tmp_path):
+    class _MainFailClient:
+        def __init__(self):
+            self.calls: list[dict] = []
+
+        def __call__(self, base_url, params, timeout_s=5.0):
+            self.calls.append(params)
+            if params["m_no"] == "90001":
+                raise client.FrameSendError(500, "main down")
+            return {"message": "OK"}
+
+    import simulator.client as client_module
+
+    stub = _MainFailClient()
+    original = client_module.send_frame
+    client_module.send_frame = stub
+    try:
+        state_path = str(tmp_path / "state.json")
+        ok = run_once("http://example.invalid", "90001", state_path, event_probability=0.0, rng=np.random.default_rng(1))
+    finally:
+        client_module.send_frame = original
+
+    assert ok is False  # 90001 실패는 그대로 실패로 보고
+    called_mnos = [p["m_no"] for p in stub.calls]
+    assert called_mnos == ["90001", *HEARTBEAT_MNOS]  # 그래도 heartbeat 7개는 전부 시도됨
 
 
 def test_cli_scenario_pool_unknown_name_rejected(tmp_path, _patch_send_frame):
